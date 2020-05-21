@@ -1,5 +1,5 @@
 # MercadoLibre
-Análisis de publicaciones con descuento
+## Análisis de publicaciones con descuento.
 
 Primero ejecutar el notebook "0_analisis_generacion_datos.ipynb" para generar el archivo "df_total_original.csv" con toda la información recolectada de las APIS públicas de Despegar.
 
