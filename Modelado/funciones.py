@@ -283,52 +283,55 @@ def generar_df_feature_importances(modelo, lista_nombre_variables):
 def graficar_feature_importances(df_feature_importances, cantidad_a_graficar):
     
     df_aux = df_feature_importances.head(cantidad_a_graficar)
-    sns.barplot(data = df_aux, x = "importance_percentage", y = "feature", color = "slateblue",
-            edgecolor = "K", orient = "h")
-
-    xticks = np.arange(0, 16, 1)
+    rectas = plt.barh(width = df_aux["importance_percentage"], y = df_aux["feature"], color = "slateblue", edgecolor = "k")
+    
+    plt.gca().invert_yaxis()
+    xticks = np.arange(0, 110, 10)
     plt.xticks(xticks, [str(int(item)) + " %" for item in xticks])
-
     plt.title("Feature importances", fontsize=17)
     plt.xlabel("Importancia", fontsize=12)
     plt.ylabel(u"Variable", fontsize=12)
-
+    autolabel_horizontal(rectas)
+    plt.tight_layout()
     plt.show()
 
 #------------------------------------------------------------------------------------------------------------------------
 
-def generar_df_resultados_tuneo(dicc_modelos):
+def autolabel_horizontal(rects):
+    """Attach a text label above each bar in *rects*, displaying its height."""
+    for rect in rects:
+        width = rect.get_width()
+        plt.annotate('{:.1f}%'.format(width),
+                    xy=(width, rect.get_y() + rect.get_height() / 2),
+                    xytext=(50, 0),  # 3 points vertical offset
+                    textcoords="offset points", fontsize = 12,
+                    ha='right', va='center')
+
+#------------------------------------------------------------------------------------------------------------------------
+
+def graficar_var_booleana_vs_target(nombre_variable, nombre_target, df_dataset):
     
-    columna_nombre_modelo = []
-    columna_mean_test_score = []
-    columna_mean_train_score = []
-    columna_overfitting = []
-    columna_params = []
-    columna_validation_score = []
+    df_aux = df_dataset.groupby([nombre_target])[nombre_variable].mean() * 100
+    df_aux = pd.DataFrame(df_aux).reset_index()
+    df_aux.rename(columns = {nombre_variable:'porcentaje'}, inplace = True)
 
-    for nombre_modelo in dicc_modelos.keys():
+    rectas = plt.barh(width = df_aux["porcentaje"], y = df_aux[nombre_target], 
+                color = "slateblue", edgecolor = "k")
 
-        mean_test_score = dicc_modelos[nombre_modelo]["mean_test_score"]
-        mean_train_score = dicc_modelos[nombre_modelo]["mean_train_score"]
-        overfitting = dicc_modelos[nombre_modelo]["overfitting"]
-        params = dicc_modelos[nombre_modelo]["params"]
-        validation_score = dicc_modelos[nombre_modelo]["validation_score"]
+    yticks = df_aux[nombre_target]
+    plt.yticks(yticks)
 
-        columna_nombre_modelo.append(nombre_modelo)
-        columna_mean_test_score.append(mean_test_score)
-        columna_mean_train_score.append(mean_train_score)
-        columna_overfitting.append(overfitting)
-        columna_params.append(params)
-        columna_validation_score.append(validation_score)
+    #maximo_valor = min(int(max(df_aux["porcentaje"]) * 1.2), 110)
+    xticks = np.arange(0, 110, 10)
+    plt.xticks(xticks, [str(int(item)) + " %" for item in xticks])
 
-    df_resultados = pd.DataFrame({"nombre_modelo":columna_nombre_modelo,
-                                  "validation_score":columna_validation_score,
-                                  "mean_test_score":columna_mean_test_score,
-                                  "mean_train_score":columna_mean_train_score,
-                                  "overfitting":columna_overfitting,
-                                  "params":columna_params
-                                  })
-    df_resultados.sort_values("validation_score", ascending = False, inplace = True)
-    return df_resultados
+    plt.xlabel("Porcentaje de publicaciones con " + str(nombre_variable) + " =1", fontsize=12)
+    plt.ylabel(nombre_target, fontsize=12)
+    plt.title(nombre_variable + " vs " + nombre_target, fontsize=17)
+
+    autolabel_horizontal(rectas)
+
+    plt.tight_layout()
+    plt.show()
 
 #------------------------------------------------------------------------------------------------------------------------
